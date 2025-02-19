@@ -9,11 +9,11 @@ app = FastAPI()
 
 @app.get("/planilla")
 async def get_planilla(
-    id_delegacion: int = Depends(get_id_delegacion),  # ✅ Filtrado
+    iddelegacion: int = Depends(get_id_delegacion),  # ✅ Filtrado
     db: AsyncSession = Depends(get_db)       # ✅ Injection
 ):
     async with db.begin():
-        result = await db.execute(select(org_actual).where(org_actual.id_delegacion == id_delegacion))
+        result = await db.execute(select(org_actual).where(org_actual.id_delegacion == iddelegacion))
         planilla = result.scalars().all()
     
     return {"planilla": [e.__dict__ for e in planilla]}  # JSON
