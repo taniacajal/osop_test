@@ -16,5 +16,6 @@ with sync_engine.connect() as conn:
 
 # Get table reference
 org_actual = Base.classes.get("ORG_ACTUAL") 
+roles = Base.classes.get("ROLES")
 
 sync_engine.dispose()

@@ -3,7 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from database import get_db
 from dependencies import get_id_delegacion  # ✅ Filtro por delegación
-from models import org_actual
+from models import org_actual, roles 
+from datetime import datetime
 
 app = FastAPI()
 
@@ -17,3 +18,26 @@ async def get_planilla(
         planilla = result.scalars().all()
     
     return {"planilla": [e.__dict__ for e in planilla]}  # JSON
+
+
+@app.get("/roles")
+async def get_shifts(db: AsyncSession = Depends(get_db)):
+    async with db.begin():
+        # Query all records from SHIFTS
+        result = await db.execute(select(roles))
+        rol = result.scalars().all()
+
+    # Format response
+    response = []
+    for shift in rol:
+        response.append({
+            "Id": shift.Id,
+            "Año": shift.fecha_inicio.year if shift.fecha_inicio else None,
+            "Mes": shift.fecha_inicio.month if shift.fecha_inicio else None,
+            "Grupo": shift.id_grupo,
+            "Período": f"{shift.fecha_inicio} - {shift.fecha_fin}" if shift.fecha_inicio and shift.fecha_fin else None,
+            "Delegación": "Delegación San Salvador Poniente",  # Constant value for all records
+            "Fecha creación": shift.fecha_creacion
+        })
+
+    return {"shifts": response}
