@@ -9,15 +9,14 @@ DB_SERVER = "10.88.0.138"
 DB_NAME = "OSOP2"
 DB_USER = "test_ext"
 DB_PASSWORD = "Temporal_MJSP_2025"
-DB_SCHEMA = "esquemavista"  
 
 DATABASE_URL = (
     f"mssql+aioodbc://{DB_USER}:{DB_PASSWORD}@{DB_SERVER}/{DB_NAME}"
-    f"?driver=ODBC+Driver+17+for+SQL+Server&CurrentSchema={DB_SCHEMA}"
+    f"?driver=ODBC+Driver+17+for+SQL+Server"
 )
 
 # Crear variable de async engine
-engine = create_async_engine(DATABASE_URL, echo=True, future=True)
+engine = create_async_engine(DATABASE_URL, echo=True, future=True, connect_args={"autocommit": True})
 
 # Session con async
 SessionLocal = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)

@@ -6,12 +6,15 @@ from sqlalchemy import create_engine
 from database import DATABASE_URL
 
 # Sync engine para auto map
-sync_engine = create_engine(DATABASE_URL.replace("mssql+aioodbc", "mssql+pyodbc"))
+sync_engine = create_engine(DATABASE_URL.replace("mssql+aioodbc", "mssql+pyodbc"),
+    connect_args={"autocommit": True})
+
 Base = automap_base()
 
-# Reflejar tablas
 with sync_engine.connect() as conn:
-    Base.prepare(conn, reflect=True)
+    Base.prepare(conn, reflect=True, schema="esquemavista")
 
-org_actual = Base.classes.ORG_ACTUAL  
+# Get table reference
+org_actual = Base.classes.get("ORG_ACTUAL") 
+
 sync_engine.dispose()
