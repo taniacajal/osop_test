@@ -8,7 +8,7 @@ import urllib
 DB_SERVER = "10.150.6.5"  
 DB_NAME = "DevPctPncOsop"
 DB_USER = "api.pctpncosop.planning"
-DB_PASSWORD = "F!qjp#f3Y~rTe^HU@J/-&w<NCg4bR.}D"
+DB_PASSWORD = "R^y7&Nec=OLZ]J4M5k.q"
 
 DATABASE_URL = (
     f"mssql+aioodbc://{DB_USER}:{DB_PASSWORD}@{DB_SERVER}/{DB_NAME}"
