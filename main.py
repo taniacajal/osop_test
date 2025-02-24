@@ -5,6 +5,7 @@ from database import get_db
 from dependencies import get_id_delegacion  # ✅ Filtro por delegación
 from models import org_actual, roles 
 from datetime import datetime
+import uvicorn
 
 app = FastAPI()
 
@@ -41,3 +42,6 @@ async def get_shifts(db: AsyncSession = Depends(get_db)):
         })
 
     return {"shifts": response}
+    
+if __name__ == '__main__':
+  uvicorn.run(app, host="0.0.0.0", port=8500)
