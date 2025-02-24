@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from database import get_db
 from dependencies import get_id_delegacion  # ✅ Filtro por delegación
-from models import org_actual, roles 
+from models import org_actual, roles, rol_detalle, dependencia, grupos, personas
 from datetime import datetime
 
 app = FastAPI()
@@ -23,11 +23,10 @@ async def get_planilla(
 @app.get("/roles")
 async def get_shifts(db: AsyncSession = Depends(get_db)):
     async with db.begin():
-        # Query all records from SHIFTS
+        
         result = await db.execute(select(roles))
         rol = result.scalars().all()
 
-    # Format response
     response = []
     for shift in rol:
         response.append({
@@ -41,3 +40,25 @@ async def get_shifts(db: AsyncSession = Depends(get_db)):
         })
 
     return {"shifts": response}
+
+
+@app.get("/rol_agente")
+async def get_rol_agente(
+    iddelegacion: int = Depends(get_id_delegacion), 
+    db: AsyncSession = Depends(get_db),       
+):
+    async with db.begin():
+
+        result_roles = await db.execute(select(roles))
+        roles = result_roles.scalars().all()
+
+        result_rol_detalle = await db.execute(select(rol_detalle))
+        rol_detalle = result_rol_detalle.scalars().all()
+
+        result_org_actual = await db.execute(select(org_actual).where(org_actual.id_delegacion == iddelegacion))
+        org_actual = result_org_actual.scalars().all()
+
+        result_personas = await db.execute(select(personas))
+        personas = result_personas.scalars().all()
+
+

@@ -5,10 +5,10 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 import urllib
 
 
-DB_SERVER = "10.88.0.138"  
-DB_NAME = "OSOP2"
-DB_USER = "test_ext"
-DB_PASSWORD = "Temporal_MJSP_2025"
+DB_SERVER = "10.150.6.5"  
+DB_NAME = "DevPctPncOsop"
+DB_USER = "api.pctpncosop.planning"
+DB_PASSWORD = "F!qjp#f3Y~rTe^HU@J/-&w<NCg4bR.}D"
 
 DATABASE_URL = (
     f"mssql+aioodbc://{DB_USER}:{DB_PASSWORD}@{DB_SERVER}/{DB_NAME}"
