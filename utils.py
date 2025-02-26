@@ -52,6 +52,7 @@ def visualizar_rol_agente(rol_selection : list, roles : pd.DataFrame, rol_detall
         }
     )
 
+    # Formato
     df.rename(columns={
         'nombre_grupo':'Grupo',
         'nombre_conjunto':'Conjunto',
@@ -62,6 +63,7 @@ def visualizar_rol_agente(rol_selection : list, roles : pd.DataFrame, rol_detall
 
     df = df[['Líder','Categoría','ONI','Nombre','Conjunto','id_rol']]
 
+    # Merge info persona con rol 
     result = df.merge(detalle_filtrado, left_on='id_rol', right_on='id_rol', how='left')
     result.drop(columns=['id_rol'], inplace=True)
 

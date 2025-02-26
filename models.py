@@ -21,5 +21,7 @@ rol_detalle = Base.classes.get("ROL_DETALLE")
 dependencia = Base.classes.get("DEPENDENCIA")
 grupos = Base.classes.get("GRUPOS")
 personas = Base.classes.get("PERSONAS")
+cuadrantes = Base.classes.get("CUADRANTES")
+medios = Base.classes.get("MEDIOS_ACTUALES")
 
 sync_engine.dispose()
