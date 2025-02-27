@@ -1,21 +1,33 @@
+"""OSOP_API
+Producto en desarrollo
+🖋️ Tania Cajal"""
+
+# FastAPI & Uvicorn
 from fastapi import FastAPI, Depends, HTTPException, status, Query
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.responses import FileResponse
+import uvicorn
 
+# Seguridad
 from passlib.context import CryptContext
 import jwt
 
-import uvicorn
-
+# SQL Alchemy
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import func, update
 
+# Módulos
 from database import get_db
 from dependencies import get_id_delegacion  # ✅ Filtro por delegación
 from models import org_actual, roles, rol_detalle, dependencia, grupos, personas
 
+# Importes genéricos
 from datetime import datetime, timedelta
+
+#---------------------------------------
+#                 AUTH
+#---------------------------------------
 
 # Clave secreta para firmar los tokens
 SECRET_KEY = "superclaveultrasegura"
@@ -101,6 +113,9 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Token inválido")
 
+
+#---------------------------------------
+#            GET ENDPOINTS
 #---------------------------------------
 
 @app.get("/planilla")
@@ -141,6 +156,9 @@ async def get_shifts(
     return {"shifts": response}
 
 
+#---------------------------------------
+#            POST ENDPOINTS
+#---------------------------------------
 
 @app.post("/modificar_conjunto")
 async def modificar_conjunto(
@@ -223,6 +241,9 @@ async def modificar_conjunto(
         return {"message": f"Agente {id_persona} asignado a conjunto {new_conjunto} con éxito."}
 
 
+#---------------------------------------
+#                 RUN
+#---------------------------------------
 
 if __name__ == '__main__':
   uvicorn.run(app, host="0.0.0.0", port=8500)
