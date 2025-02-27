@@ -1,14 +1,20 @@
 from fastapi import FastAPI, Depends, HTTPException, status, Query
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.responses import FileResponse
+
 from passlib.context import CryptContext
 import jwt
+
 import uvicorn
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import func, update
+
 from database import get_db
 from dependencies import get_id_delegacion  # ✅ Filtro por delegación
 from models import org_actual, roles, rol_detalle, dependencia, grupos, personas
+
 from datetime import datetime, timedelta
 
 # Clave secreta para firmar los tokens
@@ -133,6 +139,90 @@ async def get_shifts(
         })
 
     return {"shifts": response}
+
+
+
+@app.post("/modificar_conjunto")
+async def modificar_conjunto(
+    id_persona: int, 
+    new_conjunto: int, 
+    db: AsyncSession = Depends(get_db)
+):
+    async with db.begin():
+        
+        result = await db.execute(select(org_actual).where(org_actual.id_persona == id_persona))
+        agente = result.scalars().first()
+
+        if not agente:
+            raise HTTPException(status_code=404, detail="Agente no encontrado")
+
+        conjunto_actual, is_leader, has_moto, has_car = (
+            agente.id_conjunto,
+            agente.lider,
+            agente.licencia_moto,  
+            agente.licencia_carro,  
+        )
+
+        # Miembros de conjunto actual
+        conjunto_miembros = await db.scalar(
+            select(func.count()).where(org_actual.id_conjunto == conjunto_actual)
+        )
+
+        # Líderes
+        leader_count_current = await db.scalar(
+            select(func.count()).where(org_actual.id_conjunto == conjunto_actual, org_actual.lider == 1)
+        )
+
+        leader_count_new = await db.scalar(
+            select(func.count()).where(org_actual.id_conjunto == new_conjunto, org_actual.lider == 1)
+        )
+
+        # Permisos
+        moto_count_new = await db.scalar(
+            select(func.count()).where(org_actual.id_conjunto == new_conjunto, org_actual.licencia_moto == 1)
+        )
+
+        car_count_new = await db.scalar(
+            select(func.count()).where(org_actual.id_conjunto == new_conjunto, org_actual.licencia_carro == 1)
+        )
+
+        team_size_new = await db.scalar(
+            select(func.count()).where(org_actual.id_conjunto == new_conjunto)
+        )
+
+        # ======= Validaciones =======
+
+        # Escenario: conjunto actual queda sin líder
+        if is_leader and leader_count_current == 1:
+            raise HTTPException(status_code=400, detail=f"Advertencia: {conjunto_actual} necesita un líder.")
+
+        # Escenario: conjunto nuevo ya tiene líder
+        if is_leader and leader_count_new >= 1:
+            raise HTTPException(status_code=400, detail=f"Advertencia: el conjunto {new_conjunto} ya tiene un líder.")
+
+        # Conjuntos de motos
+        if has_moto and team_size_new < 3:
+            raise HTTPException(status_code=400, detail=f"El conjunto {new_conjunto} debe tener al menos 3 miembros con permiso de manejar motocicletas.")
+
+        if has_moto and (moto_count_new > 0 and moto_count_new != team_size_new):
+            raise HTTPException(status_code=400, detail=f"Todos los miembros del conjunto {new_conjunto} deben contar con permiso de manejar motocicletas.")
+
+        # Conjuntos pick-up
+        if has_car and team_size_new < 2:
+            raise HTTPException(status_code=400, detail=f"Conjunto {new_conjunto} debe contar con al menos 2 miembros.")
+
+        if has_car and car_count_new >= 1:
+            raise HTTPException(status_code=400, detail=f"Advertencia: El conjunto {new_conjunto} ya tiene un motorista asignado.")
+
+        # ======= Aplicar cambios =======
+        await db.execute(
+            update(org_actual).where(org_actual.id_persona == id_persona).values(id_conjunto=new_conjunto)
+        )
+        await db.commit()
+
+        return {"message": f"Agente {id_persona} asignado a conjunto {new_conjunto} con éxito."}
+
+
 
 if __name__ == '__main__':
   uvicorn.run(app, host="0.0.0.0", port=8500)

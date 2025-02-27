@@ -5,3 +5,4 @@ __pycache__/
 fastapi-env/
 venv/
 
+.vscode/settings.json
